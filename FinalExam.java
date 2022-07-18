@@ -1,5 +1,3 @@
-package Java.CS111;
-
 public class FinalExam {
     public static void main(String[] args){
 
