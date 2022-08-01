@@ -14,12 +14,14 @@ public class NBody extends Canvas implements ActionListener
     public ArrayList<Color> setColor = new ArrayList<>();
 
     //change in postion dP = v * dt
-    public ArrayList<Integer> xVel = new ArrayList<>();
-    public ArrayList<Integer> yVel = new ArrayList<>();
+    public ArrayList<Double> xVel = new ArrayList<>();
+    public ArrayList<Double> yVel = new ArrayList<>();
 
     //change in velocity dV = a * dt
-    public ArrayList<Integer> xAcc = new ArrayList<>();
-    public ArrayList<Integer> yAcc = new ArrayList<>();
+
+
+    public ArrayList<Double> xAcc = new ArrayList<>();
+    public ArrayList<Double> yAcc = new ArrayList<>();
 
 
     
@@ -27,6 +29,7 @@ public class NBody extends Canvas implements ActionListener
     public double dt;
     public double maxVel;
     public double maxMass;
+    public double g;
 
     public void init(int n)
     {
@@ -35,13 +38,13 @@ public class NBody extends Canvas implements ActionListener
         for(int i = 0; i < n; i++){
             int x = (int) (Math.random() * 800);
             int y = (int) (Math.random() * 800);
-            int mass = (int) (Math.random() * 10);
+            int mass = (int) (Math.random() * 10 + 1);
             int R = (int) (Math.random() * 255);
             int G = (int) (Math.random() * 255);
             int B = (int) (Math.random() * 255);
-            int initVelX = (int) (Math.random() * 20 - 10); 
-            int initVelY = (int) (Math.random() * 20 - 10); 
-            
+            double initVelX =(Math.random() * 20 - 10); 
+            double initVelY =(Math.random() * 20 - 10); 
+
 
             Color color = new Color(R, G, B);
 
@@ -51,10 +54,20 @@ public class NBody extends Canvas implements ActionListener
             Mass.add(mass);
             xVel.add(initVelX);
             yVel.add(initVelY);
+
         }
     }
 
-    
+
+    public double calcDistance(double x1, double y1, double x2, double y2){
+        return Math.sqrt((Math.pow(x2 - x1, 2) + Math.pow(y2-y1, 2)));
+    }
+
+
+    public double calcF(int g, int m1, int m2, int r){
+        return (g*m1*m2)/(Math.pow(r, 2));
+    }
+
     // Draw a circle centered at (x, y) with radius r
     public void drawCircle(Graphics g, int x, int y, int r)
     {
@@ -78,11 +91,32 @@ public class NBody extends Canvas implements ActionListener
 
     public void actionPerformed(ActionEvent e)
     {
+
         // Your update code here:
-        for(int i = 0; i < n; i++){
-            xCoord.set(i,xCoord.get(i) + xVel.get(i));
-            yCoord.set(i,yCoord.get(i) + yVel.get(i));
+
+        for(int j = 0; j < n; j++){
+            for(int k = 1; k < n-1; k++){
+                double r = calcDistance(xCoord.get(j), yCoord.get(j), xCoord.get(k), yCoord.get(k));
+                if(r < 5){
+                    r = 5;
+                }
+                r = calcDistance(xCoord.get(j)/r, yCoord.get(j)/r, xCoord.get(k)/r, yCoord.get(k)/r);
+
+                double m1 = Mass.get(j);
+                double m2 = Mass.get(k);
+                double f = (g * m1 * m2)/(Math.pow(r, 2));
+                double a = f/m1;
+
+            }
         }
+        
+
+        for(int i = 0; i < n; i++){
+            xCoord.set(i,(int) (xCoord.get(i) + xVel.get(i)));
+            yCoord.set(i,(int) (yCoord.get(i) + yVel.get(i)));
+        }
+        
+
 
         // Repaint the screen
         repaint();
@@ -102,6 +136,7 @@ public class NBody extends Canvas implements ActionListener
         nbody.maxVel = 10;
         nbody.maxMass = 10;
         nbody.dt = 0.1;
+        nbody.g = 100;
         nbody.setPreferredSize(new Dimension(nbody.size, nbody.size));
         nbody.init(n);
 
