@@ -64,10 +64,6 @@ public class NBody extends Canvas implements ActionListener
     }
 
 
-    public double calcF(int g, int m1, int m2, int r){
-        return (g*m1*m2)/(Math.pow(r, 2));
-    }
-
     // Draw a circle centered at (x, y) with radius r
     public void drawCircle(Graphics g, int x, int y, int r)
     {
