@@ -3,6 +3,13 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.*;
 
+
+
+//Overall note: to whom it may concern: The project is not perfect and needs more debugging. The stars clump in the top right corner. 
+//I believe this is due to the initial velocities and the program's time complexity being exponential due to multiple nested loops. 
+
+//The program one by one has the stars affect surrounding stars nearby, this is once again due to the for loop being slow and inefficient. 
+
 public class NBody extends Canvas implements ActionListener
 {
     public int n;
@@ -36,14 +43,16 @@ public class NBody extends Canvas implements ActionListener
         // Your initialization code here:
         this.n = n;
         for(int i = 0; i < n; i++){
-            int x = (int) (Math.random() * 800);
-            int y = (int) (Math.random() * 800);
-            int mass = (int) (Math.random() * 10 + 1);
+
+            //initializing using Math.random
+            int x = (int) (Math.random() * size);
+            int y = (int) (Math.random() * size);
+            int mass = (int) (Math.random() * maxMass + 1);
             int R = (int) (Math.random() * 255);
             int G = (int) (Math.random() * 255);
             int B = (int) (Math.random() * 255);
-            double initVelX =(Math.random() * 20 - 10); 
-            double initVelY =(Math.random() * 20 - 10); 
+            double initVelX =(Math.random() * (2 * maxVel) - maxVel); 
+            double initVelY =(Math.random() * (2 * maxVel) - maxVel); 
 
 
             Color color = new Color(R, G, B);
@@ -59,9 +68,7 @@ public class NBody extends Canvas implements ActionListener
     }
 
 
-    public double calcDistance(double x1, double y1, double x2, double y2){
-        return Math.sqrt((Math.pow(x2 - x1, 2) + Math.pow(y2-y1, 2)));
-    }
+
 
 
     // Draw a circle centered at (x, y) with radius r
@@ -79,39 +86,56 @@ public class NBody extends Canvas implements ActionListener
         // Your drawing code here:
 
         for(int i = 0; i < n; i++){
-            g.setColor(setColor.get(i));
-            drawCircle(g, xCoord.get(i), yCoord.get(i), Mass.get(i));            
+            g.setColor(setColor.get(i)); //using the index to group the attributes of each star
+            drawCircle(g, xCoord.get(i), yCoord.get(i), Mass.get(i)/2);            
         }
 
     }
 
     public void actionPerformed(ActionEvent e)
     {
-
         // Your update code here:
 
+
         for(int j = 0; j < n; j++){
-            for(int k = 1; k < n-1; k++){
-                double r = calcDistance(xCoord.get(j), yCoord.get(j), xCoord.get(k), yCoord.get(k));
-                if(r < 5){
-                    r = 5;
+            double dV = 0;
+            for(int k = 0; k < n; k++){
+                if(j != k){ //making sure we arent calculating acceleration due to the same star (avoiding infinity based error)
+                    double distX = xCoord.get(k) - xCoord.get(j); //calculating distance in the x direction
+                    double distY = yCoord.get(k) - yCoord.get(j); //calculating distance in the y direction
+                    
+                    double r = Math.sqrt((distX * distX) + (distY * distY)); //calculating the magnitude 
+                    if(r < 10){
+                        r = 5; //setting r = 5 if stars get too close
+                    }
+    
+                    double m1 = Mass.get(j); 
+                    double m2 = Mass.get(k);
+                    dV = (g * m1 * m2 * dt)/ (m1 * (r * r)); //using mass, magnutude and g to find the change in veloctiy
+
+                    xAcc.add(dV);
+                    yAcc.add(dV); //adding the change in veloctiy to an arraylist to access (acceleration)
+
+                    if(distX < 0)
+                        xVel.set(j, xVel.get(j) - (dt * xAcc.get(j)));
+                    else
+                        xVel.set(j, xVel.get(j) + (dt * xAcc.get(j)));  
+
+                    if(distY < 0)
+                        yVel.set(j, yVel.get(j) - (dt * xAcc.get(j)));
+                    else
+                        yVel.set(j, yVel.get(j) + (dt * xAcc.get(j)));
+                    
                 }
-                r = calcDistance(xCoord.get(j)/r, yCoord.get(j)/r, xCoord.get(k)/r, yCoord.get(k)/r);
-
-                double m1 = Mass.get(j);
-                double m2 = Mass.get(k);
-                double f = (g * m1 * m2)/(Math.pow(r, 2));
-                double a = f/m1;
-
+                
             }
         }
-        
 
         for(int i = 0; i < n; i++){
-            xCoord.set(i,(int) (xCoord.get(i) + xVel.get(i)));
-            yCoord.set(i,(int) (yCoord.get(i) + yVel.get(i)));
+            xCoord.set(i,(int) (xCoord.get(i) + (dt * xVel.get(i)))); //updating the coordinates
+            yCoord.set(i,(int) (yCoord.get(i) + (dt * yVel.get(i))));
+            
         }
-        
 
 
         // Repaint the screen
